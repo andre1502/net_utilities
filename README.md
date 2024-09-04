@@ -1,5 +1,7 @@
 # net_utilities
 
+![Packagist Version](https://img.shields.io/packagist/v/andre1502/net_utilities)
+
 Library to help faster initialization Laravel project which include common functions, lang, exceptions, middleware, and routes.
 
 ## Installation
