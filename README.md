@@ -127,7 +127,6 @@ Consists of:
 - UtilsTrait
 - HttpRequestTrait
 - Commands Trait:
-
   - PrependsEnvironmentTrait
   - PrependsOutputTrait
   - PrependsTimestampTrait
@@ -311,3 +310,18 @@ DASHBOARD_ALLOWED_IP=127.0.0.1,192.168.1.1
 System will register common route for check whether project has been deployed correctly (health-check) and console route to help clean log remotely.
 
 Package also automatically register the routes, so no additional action need to do.
+
+## 💖 Support the Project
+
+If this project saved you time or helped you build something cool, consider a one-time donation!
+
+[![Liberapay One-Time](https://img.shields.io/badge/Liberapay-Donate%20Once-blue?style=for-the-badge&logo=liberapay)](https://liberapay.com/andre1502/donate)
+
+| Amount                                                                          | Goal                     |
+| :------------------------------------------------------------------------------ | :----------------------- |
+| **[$5 USD](https://liberapay.com/andre1502/donate?amount=5.00&currency=USD)**   | ☕ Buy me a coffee       |
+| **[$15 USD](https://liberapay.com/andre1502/donate?amount=15.00&currency=USD)** | 🍕 Buy me a pizza        |
+| **[$50 USD](https://liberapay.com/andre1502/donate?amount=50.00&currency=USD)** | 🛠️ Support a new feature |
+| **Custom**                                                                      | 🚀 Every bit helps!      |
+
+> **Note:** 100% of your donation goes to development (excluding PayPal's standard transaction fee).
