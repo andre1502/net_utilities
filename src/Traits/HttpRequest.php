@@ -30,7 +30,7 @@ trait HttpRequest
   protected string $multipartFormData = "multipart/form-data";
   protected string $textPlain = "text/plain";
 
-  private function init()
+  private function initHttpRequest()
   {
     if (!isset($this->logChannel)) {
       $this->logChannel = $this->getLogChannel();
@@ -79,11 +79,11 @@ trait HttpRequest
     }
 
     if (!is_null($retry)) {
-      $this->timeout = $retry;
+      $this->retry = $retry;
     }
 
     if (!is_null($retryIntervalMs)) {
-      $this->timeout = $retryIntervalMs;
+      $this->retryIntervalMs = $retryIntervalMs;
     }
   }
 
@@ -126,7 +126,7 @@ trait HttpRequest
   public function requestAPI(string $requestUrl, ?string $token, ?array $requestHeader, ?array $requestData, ?array $requestQuery, string $requestMethod,
     string $contentType = "application/json") : array
   {
-    $this->init();
+    $this->initHttpRequest();
 
     $result = [
       "status" => false,
@@ -215,8 +215,9 @@ trait HttpRequest
       $result["response"] = $this->getResponseBody($ex->response);
       $result["exception"] = $this->getException($ex->response);
     } catch (ConnectionException | GuzzleRequestException $ex) {
+      $statusCode = (method_exists($ex, 'getResponse') && $ex->getResponse()) ? $ex->getResponse()->getStatusCode() : 'N/A';
       Log::channel($this->logChannel)->info(sprintf("[%s:%s] - Failed API connection [%s][%s].", __METHOD__, __LINE__,
-        $ex->getResponse()->getStatusCode(), print_r($ex->getMessage(), true)));
+        $statusCode, print_r($ex->getMessage(), true)));
 
       throw new FailedAPIConnectionException(sprintf("Failed API connection [%s].", print_r($ex->getMessage(), true)));
     } catch (Exception $ex) {

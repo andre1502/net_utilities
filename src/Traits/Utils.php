@@ -4,7 +4,6 @@ namespace Andre1502\NetUtilities\Traits;
 
 use Andre1502\NetUtilities\Traits\Config;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -13,25 +12,17 @@ trait Utils
   use Config;
 
   /**
-   * frand
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Generate a random float between min and max.
    */
-  public function frand($min, $max, $decimals = 0)
+  public function frand(float|int $min, float|int $max, int $decimals = 0) : float
   {
     $scale = pow(10, $decimals);
 
-    return mt_rand($min * $scale, $max * $scale) / $scale;
+    return mt_rand((int) ($min * $scale), (int) ($max * $scale)) / $scale;
   }
 
   /**
-   * roundUp
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Round a float up to a given precision.
    */
   public function roundUp(float $number, int $precision) : float
   {
@@ -41,11 +32,7 @@ trait Utils
   }
 
   /**
-   * roundDown
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Round a float down to a given precision.
    */
   public function roundDown(float $number, int $precision) : float
   {
@@ -55,37 +42,28 @@ trait Utils
   }
 
   /**
-   * floatdiv
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Safe division returning float or 0 on division by zero.
    */
   public function floatdiv(float $numerator, float $denominator) : float
   {
-    try {
-      return ((float) $denominator == 0) ? 0 : ((float) ((float) $numerator / (float) $denominator));
-    } catch (\DivisionByZeroError $e) {
-      return 0;
+    if ((float) $denominator == 0.0) {
+      return 0.0;
     }
+
+    return (float) ($numerator / $denominator);
   }
 
   /**
-   * jsonValidate
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Validate and decode JSON string, returning structured error and data.
    */
   public function jsonValidate(string $string) : array
   {
     // decode the JSON data
-    $result = json_decode($string, true, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $result = json_decode($string, true, 512, JSON_BIGINT_AS_STRING);
 
-    // switch and check possible JSON errors
     switch (json_last_error()) {
       case JSON_ERROR_NONE:
-        $error = ""; // JSON is valid // No error has occurred
+        $error = "";
         break;
       case JSON_ERROR_DEPTH:
         $error = "The maximum stack depth has been exceeded.";
@@ -99,15 +77,12 @@ trait Utils
       case JSON_ERROR_SYNTAX:
         $error = "Syntax error, malformed JSON.";
         break;
-        // PHP >= 5.3.3
       case JSON_ERROR_UTF8:
         $error = "Malformed UTF-8 characters, possibly incorrectly encoded.";
         break;
-        // PHP >= 5.5.0
       case JSON_ERROR_RECURSION:
         $error = "One or more recursive references in the value to be encoded.";
         break;
-        // PHP >= 5.5.0
       case JSON_ERROR_INF_OR_NAN:
         $error = "One or more NAN or INF values in the value to be encoded.";
         break;
@@ -115,7 +90,7 @@ trait Utils
         $error = "A value of a type that cannot be encoded was given.";
         break;
       default:
-        $error = "Unknown JSON error occured.";
+        $error = "Unknown JSON error occurred.";
         break;
     }
 
@@ -130,13 +105,9 @@ trait Utils
   }
 
   /**
-   * updateFileUrl
-   *
-   * @date     2024/04/15
-   * @author   Andre Lukito
-   * @return
+   * Prefix domain to given file URL field names in lists.
    */
-  public function updateFileUrl(?array $lists, array $fileUrlFieldNames, string $serverDomain) : array
+  public function updateFileUrl(?array $lists, array $fileUrlFieldNames, string $serverDomain) : ?array
   {
     if (empty($lists)) {
       return $lists;
@@ -154,22 +125,16 @@ trait Utils
   }
 
   /**
-   * wrapperFileUrl
-   *
-   * @date     2024/04/15
-   * @author   Andre Lukito
-   * @return
+   * Wrapper for updateFileUrl handling pagination or array structures.
    */
-  public function wrapperFileUrl(?array $lists, array $fileUrlFieldNames, string $serverDomain) : array
+  public function wrapperFileUrl(?array $lists, array $fileUrlFieldNames, string $serverDomain) : ?array
   {
     if (empty($lists)) {
       return $lists;
     }
 
     if (!isset($lists["data"])) {
-      $lists = $this->updateFileUrl($lists, $fileUrlFieldNames, $serverDomain);
-
-      return $lists;
+      return $this->updateFileUrl($lists, $fileUrlFieldNames, $serverDomain);
     }
 
     $lists["data"] = $this->updateFileUrl($lists["data"], $fileUrlFieldNames, $serverDomain);
@@ -178,63 +143,52 @@ trait Utils
   }
 
   /**
-   * getClientIp
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Get client IP address supporting reverse proxies.
    */
   public function getClientIp(bool $type = false, bool $client = true) : string
   {
-    $type = $type ? 1 : 0;
-    static $ip = null;
+    $typeIndex = $type ? 1 : 0;
+    $detectedIp = "0.0.0.0";
 
-    if ($ip !== null) {
-      return $ip[$type];
-    }
+    $server = function_exists('request') ? request()->server->all() : $_SERVER;
 
     if ($client) {
-      if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
-        $ip = $_SERVER["HTTP_CF_CONNECTING_IP"];
-      } elseif (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-        $arr = explode(",", $_SERVER["HTTP_X_FORWARDED_FOR"]);
-        $pos = array_search("unknown", $arr);
+      if (!empty($server["HTTP_CF_CONNECTING_IP"])) {
+        $detectedIp = (string) $server["HTTP_CF_CONNECTING_IP"];
+      } elseif (!empty($server["HTTP_X_FORWARDED_FOR"])) {
+        $arr = explode(",", (string) $server["HTTP_X_FORWARDED_FOR"]);
+        $pos = array_search("unknown", $arr, true);
 
         if ($pos !== false) {
           unset($arr[$pos]);
         }
 
-        $ip = trim($arr[0]);
-      } elseif (isset($_SERVER["HTTP_CLIENT_IP"])) {
-        $ip = $_SERVER["HTTP_CLIENT_IP"];
-      } elseif (isset($_SERVER["HTTP_X_FORWARDED"])) {
-        $ip = $_SERVER["HTTP_X_FORWARDED"];
-      } elseif (isset($_SERVER["HTTP_X_CLUSTER_CLIENT_IP"])) {
-        $ip = $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"];
-      } elseif (isset($_SERVER["HTTP_FORWARDED_FOR"])) {
-        $ip = $_SERVER["HTTP_FORWARDED_FOR"];
-      } elseif (isset($_SERVER["HTTP_FORWARDED"])) {
-        $ip = $_SERVER["HTTP_FORWARDED"];
-      } elseif (isset($_SERVER["REMOTE_ADDR"])) {
-        $ip = $_SERVER["REMOTE_ADDR"];
+        $detectedIp = trim($arr[0] ?? "");
+      } elseif (!empty($server["HTTP_CLIENT_IP"])) {
+        $detectedIp = (string) $server["HTTP_CLIENT_IP"];
+      } elseif (!empty($server["HTTP_X_FORWARDED"])) {
+        $detectedIp = (string) $server["HTTP_X_FORWARDED"];
+      } elseif (!empty($server["HTTP_X_CLUSTER_CLIENT_IP"])) {
+        $detectedIp = (string) $server["HTTP_X_CLUSTER_CLIENT_IP"];
+      } elseif (!empty($server["HTTP_FORWARDED_FOR"])) {
+        $detectedIp = (string) $server["HTTP_FORWARDED_FOR"];
+      } elseif (!empty($server["HTTP_FORWARDED"])) {
+        $detectedIp = (string) $server["HTTP_FORWARDED"];
+      } elseif (!empty($server["REMOTE_ADDR"])) {
+        $detectedIp = (string) $server["REMOTE_ADDR"];
       }
-    } elseif (isset($_SERVER["REMOTE_ADDR"])) {
-      $ip = $_SERVER["REMOTE_ADDR"];
+    } elseif (!empty($server["REMOTE_ADDR"])) {
+      $detectedIp = (string) $server["REMOTE_ADDR"];
     }
 
-    // 防止IP伪造
-    $long = sprintf("%u", ip2long($ip));
-    $ip = $long ? [$ip, $long] : ["0.0.0.0", 0];
+    $long = sprintf("%u", ip2long($detectedIp));
+    $ip = $long ? [$detectedIp, (int) $long] : ["0.0.0.0", 0];
 
-    return $ip[$type];
+    return (string) $ip[$typeIndex];
   }
 
   /**
-   * getRandomNumber
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Generate random numeric string of given length.
    */
   public function getRandomNumber(int $randNumLength = 8) : string
   {
@@ -247,11 +201,7 @@ trait Utils
   }
 
   /**
-   * 生成trans_id
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Generate a unique transaction ID.
    */
   public function getTransId(string $prefix = "", int $randNumLength = 8) : string
   {
@@ -275,13 +225,7 @@ trait Utils
   }
 
   /**
-   * 轉換時間為Local時間
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @param   Carbon $dateTime
-   * @param   string $sourceTimezone (e.g. Asia/Hong_Kong)
-   * @return
+   * Convert timestamp to local configured timezone.
    */
   public function convertToLocalTimezone(string $dateTime, string $sourceTimezone, string $dateTimeFormat = "Y-m-d H:i:s") : string
   {
@@ -291,25 +235,14 @@ trait Utils
 
     $localTimezone = $this->getTimezone();
 
-    //only ack datetime into specific timezone (e.g. score3th timezone (Asia/Hong_Kong))
-    //initially parsed since $datetime will be string without any timezone indication
     $shiftToSourceTimezone = Carbon::parse($dateTime)->shiftTimezone($sourceTimezone);
-
-    //change datetime into specific timezone (e.g. local timezone (Asia/Shanghai))
-    //copy shifted datetime (already ack the timezone) and update datetime with timezone
     $setToLocalTimezone = $shiftToSourceTimezone->copy()->setTimezone($localTimezone);
 
     return $setToLocalTimezone->format($dateTimeFormat);
   }
 
   /**
-   * 轉換時間為其他時間
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @param   Carbon $dateTime
-   * @param   string $destTimezone (e.g. UTC)
-   * @return
+   * Convert timestamp to a specific timezone.
    */
   public function convertToSpecificTimezone(string $dateTime, string $destTimezone, string $dateTimeFormat = "Y-m-d H:i:s") : string
   {
@@ -319,25 +252,14 @@ trait Utils
 
     $localTimezone = $this->getTimezone();
 
-    //only ack datetime into local timezone (e.g. local timezone (Asia/Hong_Kong))
-    //initially parsed since $datetime will be string without any timezone indication
     $shiftToLocalTimezone = Carbon::parse($dateTime)->shiftTimezone($localTimezone);
-
-    //change datetime into specific timezone (e.g. score3th timezone (Asia/Shanghai))
-    //copy shifted datetime (already ack the timezone) and update datetime with timezone
     $setToSpecificTimezone = $shiftToLocalTimezone->copy()->setTimezone($destTimezone);
 
     return $setToSpecificTimezone->format($dateTimeFormat);
   }
 
   /**
-   * 轉換時間為其他時間
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @param   Carbon $dateTime
-   * @param   string $destTimezone (e.g. UTC)
-   * @return
+   * Convert timestamp to a specific timezone unix timestamp.
    */
   public function convertToSpecificTimezoneTimestamp(string $dateTime, string $destTimezone) : int
   {
@@ -347,23 +269,14 @@ trait Utils
 
     $localTimezone = $this->getTimezone();
 
-    //only ack datetime into local timezone (e.g. local timezone (Asia/Hong_Kong))
-    //initially parsed since $datetime will be string without any timezone indication
     $shiftToLocalTimezone = Carbon::parse($dateTime)->shiftTimezone($localTimezone);
-
-    //change datetime into specific timezone (e.g. score3th timezone (Asia/Shanghai))
-    //copy shifted datetime (already ack the timezone) and update datetime with timezone
     $setToSpecificTimezone = $shiftToLocalTimezone->copy()->setTimezone($destTimezone);
 
     return $setToSpecificTimezone->timestamp;
   }
 
   /**
-   * removePaginateUrlPath
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Strip pagination links and metadata from array.
    */
   public function removePaginateUrlPath(array $data) : array
   {
@@ -371,32 +284,27 @@ trait Utils
   }
 
   /**
-   * printMixed
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Serialize mixed values to JSON or print_r.
    */
   public function printMixed(mixed $mixed) : string
   {
-    try {
-      return json_encode($mixed, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    } catch (Exception $e) {
-      return print_r($mixed, true);
-    }
+    $encoded = json_encode($mixed, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return ($encoded !== false) ? $encoded : print_r($mixed, true);
   }
 
   /**
-   * convert
-   *
-   * @date 2024/04/15
-   * @author Andre Lukito
-   * @return
+   * Convert byte size into human readable string.
    */
   public function convert(float $size) : string
   {
-    $unit = ["b", "kb", "mb", "gb", "tb", "pb"];
+    if ($size <= 0) {
+      return "0 b";
+    }
 
-    return sprintf("%s %s", @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2), $unit[$i]);
+    $unit = ["b", "kb", "mb", "gb", "tb", "pb"];
+    $i = (int) min(count($unit) - 1, max(0, floor(log($size, 1024))));
+
+    return sprintf("%s %s", round($size / pow(1024, $i), 2), $unit[$i]);
   }
 }

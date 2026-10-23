@@ -28,11 +28,14 @@ class DashboardBasicAuth
     $authPassword = config("{$this->configName}.basic_auth.password");
     $allowedIps = config("{$this->configName}.basic_auth.allowed_ip");
 
-    if (!empty($allowedIps)) {
-      $allowedIps = explode(",", $allowedIps);
+    $ipList = [];
+    if (is_array($allowedIps)) {
+      $ipList = $allowedIps;
+    } elseif (!empty($allowedIps) && is_string($allowedIps)) {
+      $ipList = array_map('trim', explode(",", $allowedIps));
     }
 
-    if (!in_array($clientIP, $allowedIps)) {
+    if (!empty($ipList) && !in_array($clientIP, $ipList, true)) {
       return response()->make("Unauthorized.", 403, ["WWW-Authenticate" => "Basic"]);
     }
 

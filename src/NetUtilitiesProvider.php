@@ -6,11 +6,13 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Andre1502\NetUtilities\Console\Commands\GenerateJWTSecret;
 use Andre1502\NetUtilities\Console\Commands\Publish;
+use Andre1502\NetUtilities\Console\Commands\SecurityCheck;
 use Andre1502\NetUtilities\Http\Middleware\APICheckAuthToken;
 use Andre1502\NetUtilities\Http\Middleware\APICheckJWT;
 use Andre1502\NetUtilities\Http\Middleware\APIResponseFormat;
 use Andre1502\NetUtilities\Http\Middleware\DashboardBasicAuth;
 use Andre1502\NetUtilities\Http\Middleware\RedisCheckJWT;
+use Andre1502\NetUtilities\Security\PHP2ShellProtection;
 use Andre1502\NetUtilities\Traits\Config;
 
 class NetUtilitiesProvider extends ServiceProvider
@@ -49,10 +51,12 @@ class NetUtilitiesProvider extends ServiceProvider
       $this->commands([
         Publish::class,
         GenerateJWTSecret::class,
+        SecurityCheck::class,
       ]);
     }
 
     $this->configureLogChannel();
+    PHP2ShellProtection::verifyOrWarn($this->getLogChannel());
     $this->configureRedis();
     $this->registerRoutes();
     $this->configureMiddleware();

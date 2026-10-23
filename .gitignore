@@ -15,3 +15,10 @@ node_modules
 build
 artifacts
 docs
+standalone-test/vendor/
+standalone-test/composer.lock
+standalone-test/storage/
+standalone-test/bootstrap/cache/
+standalone-test/.env
+standalone-test/.phpunit.cache/
+standalone-test/.phpunit.result.cache

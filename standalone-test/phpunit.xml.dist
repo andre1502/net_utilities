@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">./tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:u4O+6yX0VjH87LpYtQJ3Z8l3sH1K1v0v3K5b7b9p1x8="/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="NET_UTILITIES_JWT_SECRET" value="standalone-test-secret-at-least-32-chars!"/>
+        <env name="NET_UTILITIES_INTERNAL_API_HEADER" value="X-Internal-Token"/>
+        <env name="NET_UTILITIES_INTERNAL_API_TOKEN" value="standalone-secret-token"/>
+    </php>
+</phpunit>

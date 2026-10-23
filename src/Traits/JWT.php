@@ -7,11 +7,11 @@ use Andre1502\NetUtilities\Traits\Config;
 use DateTimeImmutable;
 use Exception;
 use Lcobucci\Clock\SystemClock;
+use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\JwtFacade;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
 use Lcobucci\JWT\Signer\Key\InMemory;
-use Lcobucci\JWT\Token\Builder;
 use Lcobucci\JWT\Token\Parser;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
@@ -23,7 +23,6 @@ trait JWT
 {
   use Config;
 
-  private string $logChannel;
   private array $jwtAuth;
   private InMemory $jwtSecret;
   private JwtFacade $jwtFacade;
@@ -32,13 +31,10 @@ trait JWT
   private Parser $parser;
 
   /**
-   * @date 2024/08/20
-   * @author Andre Lukito
-   * @return
+   * Initialize JWT utilities.
    */
-  public function init()
+  public function init(): void
   {
-    $this->logChannel = $this->getLogChannel();
     $this->jwtAuth = $this->getJwtAuth();
 
     if ((!isset($this->jwtSecret)) && (!empty($this->jwtAuth["default"]["secret"]))) {
@@ -63,24 +59,23 @@ trait JWT
   }
 
   /**
-   * @date 2024/08/20
-   * @author Andre Lukito
-   * @param Builder $builder
-   * @param DateTimeImmutable $issuedAt
-   * @param int $userId
-   * @param ?array $data
-   * @return Builder
+   * Build token claims and timestamps.
    */
-  private function tokenBuilder(Builder $builder, DateTimeImmutable $issuedAt, int $userId, ?array $data = null) : Builder
+  private function tokenBuilder(Builder $builder, DateTimeImmutable $issuedAt, int $userId, ?array $data = null): Builder
   {
-    $expiresAt = $issuedAt->getTimestamp() + ($this->jwtAuth["default"]["ttl"] * 60);
+    $ttlMinutes = (int) ($this->jwtAuth["default"]["ttl"] ?? 20160);
+    $expiresAt = $issuedAt->getTimestamp() + ($ttlMinutes * 60);
     $expiresAtDTI = (new DateTimeImmutable())->setTimestamp($expiresAt);
+
+    $issuer = function_exists('url') && request()->getHttpHost()
+      ? url()->current()
+      : (string) config("app.url", "http://localhost");
 
     $tokenBuilder = $builder
       // Configures the issuer (iss claim)
-      ->issuedBy(url()->current())
+      ->issuedBy($issuer)
       // Configures the subject of the token (sub claim)
-      ->relatedTo($userId)
+      ->relatedTo((string) $userId)
       // Configures the time that the token can be used (nbf claim)
       ->canOnlyBeUsedAfter($issuedAt->modify("-1 hour"))
       // Configures the expiration time of the token (exp claim)
@@ -89,7 +84,7 @@ trait JWT
       ->withClaim("uid", $userId);
 
     if (!empty($data)) {
-      foreach ($data as $key => &$value) {
+      foreach ($data as $key => $value) {
         $tokenBuilder = $tokenBuilder->withClaim($key, $value);
       }
     }
@@ -98,19 +93,22 @@ trait JWT
   }
 
   /**
-   * @date 2024/08/20
-   * @author Andre Lukito
-   * @param int userId
-   * @param ?array data
+   * Issue a new JWT token.
+   *
+   * @param int $userId
+   * @param ?array $data
    * @return string
    */
-  public function issueToken(int $userId, ?array $data = null) : string
+  public function issueToken(int $userId, ?array $data = null): string
   {
     $this->init();
 
     try {
-      $token = $this->jwtFacade->issue($this->hmacSha256, $this->jwtSecret,
-        fn (Builder $builder, DateTimeImmutable $issuedAt) : Builder => $this->tokenBuilder($builder, $issuedAt, $userId, $data));
+      $token = $this->jwtFacade->issue(
+        $this->hmacSha256,
+        $this->jwtSecret,
+        fn (Builder $builder, DateTimeImmutable $issuedAt): Builder => $this->tokenBuilder($builder, $issuedAt, $userId, $data)
+      );
 
       return $token->toString();
     } catch (Exception $ex) {
@@ -119,12 +117,13 @@ trait JWT
   }
 
   /**
-   * @date 2024/08/20
-   * @author Andre Lukito
+   * Validate and parse a signed token.
+   *
    * @param string $token
+   * @param ?string $secret
    * @return UnencryptedToken
    */
-  public function validateToken(string $token, ?string $secret = null) : UnencryptedToken
+  public function validateToken(string $token, ?string $secret = null): UnencryptedToken
   {
     $this->init();
 
@@ -137,11 +136,12 @@ trait JWT
 
       return $this->jwtFacade->parse($token, $signedWith, new StrictValidAt(SystemClock::fromSystemTimezone()));
     } catch (RequiredConstraintsViolated $ex) {
-      if ($ex->violations()[0]->constraint === SignedWith::class) {
+      $violations = $ex->violations();
+      if (!empty($violations) && $violations[0]->constraint === SignedWith::class) {
         throw new APIErrorException(Response::HTTP_UNAUTHORIZED, "{$this->configName}::error.INVALID_TOKEN_SIGNATURE", ["raw_ex" => $ex]);
       }
 
-      if ($ex->violations()[0]->constraint === StrictValidAt::class) {
+      if (!empty($violations) && $violations[0]->constraint === StrictValidAt::class) {
         throw new APIErrorException(Response::HTTP_UNAUTHORIZED, "{$this->configName}::error.TOKEN_EXPIRED", ["raw_ex" => $ex]);
       }
 
@@ -152,29 +152,33 @@ trait JWT
   }
 
   /**
-   * @date 2024/08/19
-   * @author Andre Lukito
+   * Parse an unverified token.
+   *
    * @param string $token
    * @return UnencryptedToken
    */
-  public function parseToken(string $token) : UnencryptedToken
+  public function parseToken(string $token): UnencryptedToken
   {
     $this->init();
 
     try {
-      return $this->parser->parse($token);
+      $parsed = $this->parser->parse($token);
+      assert($parsed instanceof UnencryptedToken);
+
+      return $parsed;
     } catch (Exception $ex) {
       throw new APIErrorException(Response::HTTP_UNAUTHORIZED, "{$this->configName}::error.FAILED_PARSE_JWT", ["raw_ex" => $ex]);
     }
   }
 
   /**
-   * @date 2024/08/20
-   * @author Andre Lukito
+   * Extract claim by key from token.
+   *
    * @param UnencryptedToken $token
+   * @param string $claimKey
    * @return mixed
    */
-  public function getClaimByKey(UnencryptedToken $token, string $claimKey) : mixed
+  public function getClaimByKey(UnencryptedToken $token, string $claimKey): mixed
   {
     $this->init();
 

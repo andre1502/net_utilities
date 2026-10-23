@@ -22,12 +22,14 @@ class BaseException extends Exception
   /**
    * Report the exception.
    *
-   * @return bool|null
+   * @return void
    */
-  public function report()
+  public function report(): void
   {
     $exTrace = $this->getTrace();
-    $reportMessage = sprintf("[%s->%s:%s] - Message: %s.", $exTrace[0]["class"], $exTrace[0]["function"], $this->getLine(), print_r($this->getMessage(), true));
+    $class = $exTrace[0]["class"] ?? 'N/A';
+    $function = $exTrace[0]["function"] ?? 'N/A';
+    $reportMessage = sprintf("[%s->%s:%s] - Message: %s.", $class, $function, $this->getLine(), print_r($this->getMessage(), true));
 
     $this->logReport($reportMessage);
   }

@@ -59,12 +59,14 @@ class APIErrorException extends Exception
   /**
    * Report the exception.
    *
-   * @return bool|null
+   * @return void
    */
-  public function report()
+  public function report(): void
   {
     $exTrace = $this->getTrace();
-    $reportMessage = sprintf("[%s->%s:%s][%s] - Message: %s.", $exTrace[0]["class"], $exTrace[0]["function"], $this->getLine(), $this->getCode(),
+    $class = $exTrace[0]["class"] ?? 'N/A';
+    $function = $exTrace[0]["function"] ?? 'N/A';
+    $reportMessage = sprintf("[%s->%s:%s][%s] - Message: %s.", $class, $function, $this->getLine(), $this->getCode(),
       print_r($this->getMessage(), true));
 
     $this->logReport($reportMessage, $this->context());
@@ -83,9 +85,9 @@ class APIErrorException extends Exception
    * Render the exception into an HTTP response.
    *
    * @param Request $request
-   * @return \Illuminate\Http\Response
+   * @return \Illuminate\Http\JsonResponse
    */
-  public function render(Request $request)
+  public function render(Request $request): \Illuminate\Http\JsonResponse
   {
     return response()->json([
       "result" => [

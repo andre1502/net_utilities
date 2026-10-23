@@ -1,19 +1,48 @@
-# net_utilities
+# net_utilities `v0.3.4`
 
-![Packagist Version](https://img.shields.io/packagist/v/andre1502/net_utilities)
+[![Latest Stable Version](https://img.shields.io/badge/version-0.3.4-blue.svg)](https://packagist.org/packages/andre1502/net_utilities)
+[![Packagist Version](https://img.shields.io/packagist/v/andre1502/net_utilities)](https://packagist.org/packages/andre1502/net_utilities)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-blue)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-red)](https://laravel.com)
+
+**Current Version:** `0.3.4` | [Changelog](CHANGELOG.md)
 
 Library to help faster initialization Laravel project which include common functions, lang, exceptions, middleware, and routes.
 
+## Compatibility
+
+- **PHP**: `^8.2`, `^8.3`, `^8.4`, `^8.5`
+- **Laravel**: `10.x`, `11.x`, `12.x`, `13.x` (supported down to the past 3 major releases)
+
+## Security & PHP2Shell Prevention
+
+This package contains proactive protections against the **PHP2Shell** runtime vulnerabilities (**CVE-2026-109618** and **CVE-2026-109619**):
+
+1. **Zero Shell Execution**: All package commands (such as `logs:clear`) use pure PHP filesystem APIs rather than shelling out to `exec()` or `system()`, eliminating PHP-to-shell injection vectors.
+2. **Runtime Security Audit**: An automated audit runs on boot and is accessible via CLI to inspect your active PHP engine and `session.upload_progress` configuration:
+
+```sh
+php artisan net-utilities:security-check
+```
+
+Patched upstream PHP versions:
+- PHP 8.2: `>= 8.2.35`
+- PHP 8.3: `>= 8.3.36`
+- PHP 8.4: `>= 8.4.27`
+- PHP 8.5: `>= 8.5.12`
+
+If running an unpatched binary, immediately set `session.upload_progress.enabled = Off` in your `php.ini` or PHP-FPM pool and upgrade your PHP runtime.
+
 ## Installation
 
-Run this script from command line inside project folder
+Run this script from command line inside project folder:
 
 ```sh
 composer require andre1502/net_utilities
-composer install
 ```
 
-Package will do auto publish for Lang data, to publish package config you can run this script from command line inside project folder
+Package will do auto publish for Lang data, to publish package config you can run this script from command line inside project folder:
 
 ```sh
 php artisan net-utilities:publish
@@ -310,6 +339,50 @@ DASHBOARD_ALLOWED_IP=127.0.0.1,192.168.1.1
 System will register common route for check whether project has been deployed correctly (health-check) and console route to help clean log remotely.
 
 Package also automatically register the routes, so no additional action need to do.
+
+## Development & Testing
+
+You can run static analysis, unit/feature tests, and real standalone Laravel integration tests via Composer scripts before building, committing, or publishing:
+
+### 1. Full Pre-Build / Pre-Publish Verification (Recommended)
+
+Runs PHPStan static analysis, package unit/feature tests, and standalone Laravel integration tests sequentially:
+
+```sh
+composer verify
+```
+
+If any step fails, the command stops immediately with an exit code, preventing faulty builds or publications.
+
+### 2. Standalone Laravel Integration Tests
+
+Tests package auto-discovery, routes, traits, middleware, and console commands inside a clean, dedicated standalone Laravel application linking your local package:
+
+```sh
+composer test:standalone
+```
+
+### 3. Package Unit & Feature Tests
+
+Runs the Pest test suite against Orchestra Testbench:
+
+```sh
+composer test
+```
+
+To run both the package unit tests and standalone application tests:
+
+```sh
+composer test:all
+```
+
+### 4. Static Analysis
+
+Runs PHPStan Level 5 analysis:
+
+```sh
+composer analyse
+```
 
 ## 💖 Support the Project
 

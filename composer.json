@@ -1,6 +1,6 @@
 {
   "name": "andre1502/net_utilities",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Library to combine common function",
   "type": "library",
   "license": "MIT",
@@ -10,26 +10,43 @@
     }
   ],
   "require": {
-    "php": "^8.0|^8.1|^8.2|^8.3",
+    "php": "^8.2 || ^8.3 || ^8.4 || ^8.5",
     "guzzlehttp/guzzle": "^7.8.1",
-    "illuminate/support": "^9|^10|^11",
+    "illuminate/support": "^10.0 || ^11.0 || ^12.0 || ^13.0",
     "lcobucci/clock": "^3.2",
-    "lcobucci/jwt": "^4.3|^5.3",
-    "symfony/http-foundation": "^6.3|^6.4|^7.0|^7.1"
+    "lcobucci/jwt": "^4.3 || ^5.3",
+    "symfony/http-foundation": "^6.2 || ^7.0 || ^8.0"
   },
   "require-dev": {
     "nunomaduro/collision": "^8.1.1",
-    "pestphp/pest": "^2.34.7",
-    "pestphp/pest-plugin-laravel": "^2.4"
+    "orchestra/testbench": "^8.0 || ^9.0 || ^10.0 || ^11.0",
+    "pestphp/pest": "^2.35.0 || ^3.0",
+    "pestphp/pest-plugin-laravel": "^2.4 || ^3.0",
+    "phpstan/phpstan": "^1.10 || ^2.0"
   },
   "scripts": {
-    "analyse": "echo \"Static analysis not configured yet.\" && exit 0",
+    "analyse": "vendor/bin/phpstan analyse",
     "test": "vendor/bin/pest --order-by random",
-    "test-coverage": "echo \"Test coverage not configured yet.\" && exit 0"
+    "test:standalone": "bash scripts/test-standalone.sh",
+    "test:all": [
+      "@test",
+      "@test:standalone"
+    ],
+    "verify": [
+      "@analyse",
+      "@test",
+      "@test:standalone"
+    ],
+    "test-coverage": "vendor/bin/pest --coverage"
   },
   "autoload": {
     "psr-4": {
       "Andre1502\\NetUtilities\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Andre1502\\NetUtilities\\Tests\\": "tests/"
     }
   },
   "config": {

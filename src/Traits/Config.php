@@ -135,7 +135,7 @@ trait Config
   /**
    * @date 2024/08/19
    * @author Andre Lukito
-   * @return string
+   * @return array
    */
   public function getRedisKeys() : array
   {
