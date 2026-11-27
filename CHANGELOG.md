@@ -5,7 +5,7 @@ All notable changes to `andre1502/net_utilities` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.5] - 2026-11-28
 
 ### Changed
 - **PHP 8.6 test support**: `require-dev` also allows Pest `^4.0 || ^5.0` and `pestphp/pest-plugin-laravel` `^4.0 || ^5.0`; the standalone test app also allows Laravel `^13.0`. The tests now run on Laravel 13, which works on PHP 8.6 (Laravel 12 fails there: `spl_object_hash()` is deprecated and its `ArraySessionHandler` lacks `create_sid()`). The package's own requirements are unchanged.

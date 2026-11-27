@@ -8,11 +8,11 @@
     "packages": [
         {
             "name": "andre1502/net_utilities",
-            "version": "0.3.4",
+            "version": "0.3.5",
             "dist": {
                 "type": "path",
                 "url": "..",
-                "reference": "38cb288769effef6ad1eb4e3e287b9765cbcc901"
+                "reference": "d40cf346a77174aca46a78741ff7b82d1a46baa5"
             },
             "require": {
                 "guzzlehttp/guzzle": "^7.8.1",
