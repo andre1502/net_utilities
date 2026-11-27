@@ -5,7 +5,6 @@
 .phpunit.result.cache
 .phpunit.cache
 *.log
-composer.lock
 vendor
 coverage
 phpstan.neon
@@ -16,7 +15,6 @@ build
 artifacts
 docs
 standalone-test/vendor/
-standalone-test/composer.lock
 standalone-test/storage/
 standalone-test/bootstrap/cache/
 standalone-test/.env

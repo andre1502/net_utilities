@@ -3,12 +3,12 @@
   "type": "project",
   "require": {
     "php": "^8.2",
-    "laravel/framework": "^11.0 || ^12.0",
+    "laravel/framework": "^11.0 || ^12.0 || ^13.0",
     "andre1502/net_utilities": "*"
   },
   "require-dev": {
-    "pestphp/pest": "^3.0",
-    "pestphp/pest-plugin-laravel": "^3.0"
+    "pestphp/pest": "^3.0 || ^4.0 || ^5.0",
+    "pestphp/pest-plugin-laravel": "^3.0 || ^4.0 || ^5.0"
   },
   "repositories": [
     {
@@ -32,6 +32,9 @@
   "config": {
     "allow-plugins": {
       "pestphp/pest-plugin": true
+    },
+    "platform": {
+      "php": "8.3.0"
     }
   },
   "minimum-stability": "dev",
