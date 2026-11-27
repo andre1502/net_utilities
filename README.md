@@ -1,12 +1,12 @@
-# net_utilities `v0.3.4`
+# net_utilities `v0.3.5`
 
-[![Latest Stable Version](https://img.shields.io/badge/version-0.3.4-blue.svg)](https://packagist.org/packages/andre1502/net_utilities)
+[![Latest Stable Version](https://img.shields.io/badge/version-0.3.5-blue.svg)](https://packagist.org/packages/andre1502/net_utilities)
 [![Packagist Version](https://img.shields.io/packagist/v/andre1502/net_utilities)](https://packagist.org/packages/andre1502/net_utilities)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-%5E8.2%20%7C%20%5E8.3%20%7C%20%5E8.4%20%7C%20%5E8.5-blue)](https://php.net)
 [![Laravel](https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-red)](https://laravel.com)
 
-**Current Version:** `0.3.4` | [Changelog](CHANGELOG.md)
+**Current Version:** `0.3.5` | [Changelog](CHANGELOG.md)
 
 Library to help faster initialization Laravel project which include common functions, lang, exceptions, middleware, and routes.
 
